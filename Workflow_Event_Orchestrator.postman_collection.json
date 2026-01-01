@@ -1,0 +1,89 @@
+{
+  "info": {
+    "name": "Workflow Event Orchestrator",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Sample calls for the Operational Workflow Orchestrator API."
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": ["{{base_url}}"],
+          "path": ["health"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Critical Fraud Event (High Risk)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('execution_log is present', function () {",
+              "  pm.response.to.have.jsonBody('execution_log');",
+              "});",
+              "pm.test('Account was frozen', function () {",
+              "  var jsonData = pm.response.json();",
+              "  pm.expect(jsonData.next_action).to.eql('freeze_account_immediate');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"event_id\": \"hack-101\",\n  \"event_type\": \"transaction_fraud_detected\",\n  \"source_system\": \"ai_risk_engine\",\n  \"customer_id\": \"hacker_007\",\n  \"metadata\": {\"risk_score\": 99}\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/event",
+          "host": ["{{base_url}}"],
+          "path": ["event"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Dispute Event (Original)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"event_id\": \"evt-1\",\n  \"event_type\": \"transaction_dispute_opened\",\n  \"source_system\": \"card_processor\",\n  \"customer_id\": \"cust-123\",\n  \"metadata\": {\"amount\": 42.0}\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/event",
+          "host": ["{{base_url}}"],
+          "path": ["event"]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5001"
+    }
+  ]
+}
