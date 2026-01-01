@@ -34,28 +34,22 @@ While traditional workflow engines function as "passive routers" (flagging issue
 
 ## 🚀 Quick Start
 
-### 1. Setup
-Bash
-# Install dependencies
+# 1. Setup
+## Install dependencies
 pip install -r requirements.txt
-2. Run the Engine
-Bash
 
+#2. Run the Engine
 python app.py
 The server listens on port 5001 to prevent conflicts with macOS AirPlay services.
 
-3. Health Check
-Bash
-
+#3. Health Check
 curl http://localhost:5001/health
+
 ⚡ Operational Scenarios
 Scenario A: The "Kill Switch" (Critical Fraud)
 Simulate a high-risk fraud event where the AI Risk Score is > 90. The system detects the threat and automatically locks the account.
 
 Request:
-
-Bash
-
 curl -X POST http://localhost:5001/event \
   -H "Content-Type: application/json" \
   -d '{
@@ -74,13 +68,11 @@ JSON
   "next_action": "freeze_account_immediate",
   "execution_log": "⚡ EXECUTION: Sent LOCK command to Core Banking for user hacker_007. Latency: 12ms."
 }
+
 Scenario B: Standard Dispute (Base Workflow)
 Simulate a standard customer dispute that requires human investigation.
 
 Request:
-
-Bash
-
 curl -X POST http://localhost:5001/event \
   -H "Content-Type: application/json" \
   -d '{
@@ -101,12 +93,10 @@ JSON
 🧪 Testing
 The project includes a comprehensive test suite covering both the base routing rules and the new conditional logic thresholds.
 
-Bash
-
 pytest
 Current Status: 7/7 Tests Passed (Includes test_fraud_high_risk_freezes_account and test_fraud_medium_risk_triggers_2fa).
 
-📬 Postman Collection
+#📬 Postman Collection
 For easier testing, a Postman collection is included.
 
 Import Workflow_Event_Orchestrator.postman_collection.json.
