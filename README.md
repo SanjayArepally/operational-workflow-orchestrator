@@ -36,8 +36,8 @@ While the original architecture serves as a "Passive Router" (classifying events
 
 ## 🚀 Quick Start
 
-### 1. Setup
-```bash
+```### 1. Setup
+bash
 # Install dependencies
 pip install -r requirements.txt
 2. Run the Engine
