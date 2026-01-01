@@ -6,50 +6,58 @@ An event-driven decision engine that ingests raw signals, applies conditional bu
 
 ---
 
-## 📖 Project Overview
+## 📖 Project Context
 This project is an advanced extension of the **Spring Labs Forward Deployed Product Engineer (FDPE)** reference architecture.
 
-While traditional workflow engines function as "passive routers" (flagging issues for human review), this system is designed as a **"Closed-Loop Operational Node."** It doesn't just analyze data; it takes autonomous action on high-stakes signals to reduce time-to-resolution from hours to milliseconds.
+While the original architecture serves as a "Passive Router" (classifying events for human review), I re-engineered this system to function as a **"Closed-Loop Operational Node."** It allows for:
+1.  **Nuanced Decision Making:** Moving beyond static 1-to-1 mapping to conditional logic thresholds.
+2.  **Automated Intervention:** Instantly executing "Write-Back" operations (e.g., locking accounts) to reduce time-to-resolution from hours to milliseconds.
 
-### Core Capabilities
-1.  **Event Ingestion & Normalization:** Validates messy JSON payloads against a strict ontology (`schema.py`).
-2.  **Conditional Business Logic:** Implements dynamic routing rules rather than static mapping.
-    * *Example:* Differentiates between "Suspicious Activity" (requires 2FA) and "Critical Fraud" (requires immediate lock).
-3.  **Automated Operational Write-Back:** A dedicated execution layer (`actions.py`) that mocks downstream API calls to external systems (e.g., Core Banking, CRM) to resolve threats instantly.
+### My Key Contributions
+| Feature | Original Architecture | My Operational Extension |
+| :--- | :--- | :--- |
+| **Logic Engine** | Static Mapping (Event A → Action A) | **Conditional Logic** (Event A + Risk > 90 → Action B) |
+| **Execution** | Returns JSON Recommendation | **Active Write-Back** (Mocks API calls to Core Banking) |
+| **Scope** | Dispute & Compliance Routing | **High-Velocity Fraud Response** |
 
 ---
 
-## 🛠️ Architecture
+## 🛠️ Project Structure
 
-**Stack:** Python 3.12, Flask, Pytest
-
-| Component | Responsibility | Status |
-| :--- | :--- | :--- |
-| **Ingest** (`app.py`) | API Gateway receiving JSON payloads. | **Enhanced** (Added Execution Loop) |
-| **Ontology** (`schema.py`) | Enforces data types and structure. | Base Implementation |
-| **Logic** (`router.py`) | Determines the "Next Best Action." | **Advanced** (Added Fraud Risk Thresholds) |
-| **Action** (`actions.py`) | Executes the decision (Side-Effects). | **[NEW]** Mocks external API calls |
+- `app.py` – Flask server exposing `/health` and `/event` endpoints. **(Updated to include Execution Loop)**
+- `router.py` – Rule engine extended with **fraud risk thresholds** and conditional logic.
+- `actions.py` – **[NEW]** Operational layer that mocks external API calls (e.g., `freeze_account`, `send_sms`).
+- `schema.py` – Validation and normalization helpers (Enforces strict ontology).
+- `test_router.py` – Pytest suite covering happy paths, validation failures, and **new risk logic**.
+- `Workflow_Event_Orchestrator.postman_collection.json` – Updated Postman collection for manual testing.
+- `requirements.txt` – Python dependencies.
 
 ---
 
 ## 🚀 Quick Start
 
-# 1. Setup
-## Install dependencies
+### 1. Setup
+```bash
+# Install dependencies
 pip install -r requirements.txt
+2. Run the Engine
+Bash
 
-#2. Run the Engine
 python app.py
-The server listens on port 5001 to prevent conflicts with macOS AirPlay services.
+Note: The server listens on port 5001 to avoid conflicts with macOS AirPlay services.
 
-#3. Health Check
+3. Health Check
+Bash
+
 curl http://localhost:5001/health
-
 ⚡ Operational Scenarios
 Scenario A: The "Kill Switch" (Critical Fraud)
-Simulate a high-risk fraud event where the AI Risk Score is > 90. The system detects the threat and automatically locks the account.
+Context: The system receives a high-risk signal (Score > 90) from the AI Risk Engine. Action: The Logic Engine overrides standard processing and triggers an immediate Account Freeze.
 
 Request:
+
+Bash
+
 curl -X POST http://localhost:5001/event \
   -H "Content-Type: application/json" \
   -d '{
@@ -59,7 +67,7 @@ curl -X POST http://localhost:5001/event \
     "customer_id": "hacker_007",
     "metadata": {"risk_score": 99}
   }'
-Response (Note the execution_log):
+Response (Note the Execution Log):
 
 JSON
 
@@ -68,11 +76,13 @@ JSON
   "next_action": "freeze_account_immediate",
   "execution_log": "⚡ EXECUTION: Sent LOCK command to Core Banking for user hacker_007. Latency: 12ms."
 }
-
 Scenario B: Standard Dispute (Base Workflow)
-Simulate a standard customer dispute that requires human investigation.
+Context: A customer initiates a transaction dispute. Action: The system routes this to the Operations Queue for human review.
 
 Request:
+
+Bash
+
 curl -X POST http://localhost:5001/event \
   -H "Content-Type: application/json" \
   -d '{
@@ -93,15 +103,17 @@ JSON
 🧪 Testing
 The project includes a comprehensive test suite covering both the base routing rules and the new conditional logic thresholds.
 
+Bash
+
 pytest
 Current Status: 7/7 Tests Passed (Includes test_fraud_high_risk_freezes_account and test_fraud_medium_risk_triggers_2fa).
 
-#📬 Postman Collection
+📬 Postman Collection
 For easier testing, a Postman collection is included.
 
 Import Workflow_Event_Orchestrator.postman_collection.json.
 
-Necessary: Ensure your environment base_url is set to http://localhost:5001.
+Important: Ensure your environment base_url is set to http://localhost:5001.
 
 The collection includes pre-configured requests for:
 
@@ -112,5 +124,6 @@ Standard Disputes
 Health Checks
 
 👏 Attribution
-The Spring Labs Engineering Challenge originally inspired this project. I have significantly extended it to demonstrate Forward Deployed Engineering principles, explicitly focusing on the transition from insight (identifying a problem) to action (solving it programmatically).
+This project is built upon the excellent Spring Labs Engineering Challenge foundation. I have significantly extended the original architecture to demonstrate Forward Deployed Engineering principles (specifically Operational Write-Back and Conditional Logic).
+
 * **Original Repository:** (https://github.com/MWJACK96/workflow_event_orchestrator.git)
