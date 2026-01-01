@@ -1,46 +1,87 @@
-# Workflow Event Orchestrator
+# Operational Workflow Orchestrator
 
-A beginner-friendly practice project that mirrors the kind of workflow automation work a Forward Deployed Product Engineer (FDPE) at Spring Labs might perform. The API receives raw JSON events from customer systems, validates and normalizes them, classifies the workflow category, and recommends the next action.
+An event-driven decision engine that ingests raw signals, applies conditional business logic, and executes operational actions in real-time.
 
-## Why this project matters
-Spring Labs builds AI-native workflow automation for banks and fintechs. FDPEs often:
-- Map customer event payloads to internal workflows.
-- Normalize and validate JSON so downstream automation is reliable.
-- Debug routing behavior when a new event type arrives.
-- Share reproducible examples with teammates via Postman collections.
+**Status:** Ready for Deployment ⚡
 
-This tiny Flask API is a sandbox for those skills.
+---
 
-## Project structure
-- `app.py` – Flask server exposing `/health` and `/event` endpoints.
-- `schema.py` – validation and normalization helpers for incoming JSON.
-- `router.py` – rule engine that maps `event_type` values to workflow categories and actions.
-- `test_router.py` – pytest coverage for happy paths and validation failures.
-- `Workflow_Event_Orchestrator.postman_collection.json` – Postman collection for easy manual testing.
-- `requirements.txt` – Python dependencies.
+## 📖 Project Overview
+This project is an advanced extension of the **Spring Labs Forward Deployed Product Engineer (FDPE)** reference architecture.
 
-## Setup
-1. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
+While traditional workflow engines function as "passive routers" (flagging issues for human review), this system is designed as a **"Closed-Loop Operational Node."** It doesn't just analyze data; it takes autonomous action on high-stakes signals to reduce time-to-resolution from hours to milliseconds.
 
-2. **Run the API**
-   ```bash
-   python app.py
-   ```
-   The server listens on `http://0.0.0.0:5000`.
+### Core Capabilities
+1.  **Event Ingestion & Normalization:** Validates messy JSON payloads against a strict ontology (`schema.py`).
+2.  **Conditional Business Logic:** Implements dynamic routing rules rather than static mapping.
+    * *Example:* Differentiates between "Suspicious Activity" (requires 2FA) and "Critical Fraud" (requires immediate lock).
+3.  **Automated Operational Write-Back:** A dedicated execution layer (`actions.py`) that mocks downstream API calls to external systems (e.g., Core Banking, CRM) to resolve threats instantly.
 
-3. **Health check**
-   ```bash
-   curl http://localhost:5000/health
-   ```
+---
 
-## Using the `/event` endpoint
-Send a JSON body containing these required fields: `event_id`, `event_type`, `source_system`, `customer_id`, and `metadata` (a dictionary). Example request:
+## 🛠️ Architecture
 
-```bash
-curl -X POST http://localhost:5000/event \
+**Stack:** Python 3.12, Flask, Pytest
+
+| Component | Responsibility | Status |
+| :--- | :--- | :--- |
+| **Ingest** (`app.py`) | API Gateway receiving JSON payloads. | **Enhanced** (Added Execution Loop) |
+| **Ontology** (`schema.py`) | Enforces data types and structure. | Base Implementation |
+| **Logic** (`router.py`) | Determines the "Next Best Action." | **Advanced** (Added Fraud Risk Thresholds) |
+| **Action** (`actions.py`) | Executes the decision (Side-Effects). | **[NEW]** Mocks external API calls |
+
+---
+
+## 🚀 Quick Start
+
+### 1. Setup
+Bash
+# Install dependencies
+pip install -r requirements.txt
+2. Run the Engine
+Bash
+
+python app.py
+The server listens on port 5001 to prevent conflicts with macOS AirPlay services.
+
+3. Health Check
+Bash
+
+curl http://localhost:5001/health
+⚡ Operational Scenarios
+Scenario A: The "Kill Switch" (Critical Fraud)
+Simulate a high-risk fraud event where the AI Risk Score is > 90. The system detects the threat and automatically locks the account.
+
+Request:
+
+Bash
+
+curl -X POST http://localhost:5001/event \
+  -H "Content-Type: application/json" \
+  -d '{
+    "event_id": "hack-101",
+    "event_type": "transaction_fraud_detected",
+    "source_system": "ai_risk_engine",
+    "customer_id": "hacker_007",
+    "metadata": {"risk_score": 99}
+  }'
+Response (Note the execution_log):
+
+JSON
+
+{
+  "workflow_category": "security_ops",
+  "next_action": "freeze_account_immediate",
+  "execution_log": "⚡ EXECUTION: Sent LOCK command to Core Banking for user hacker_007. Latency: 12ms."
+}
+Scenario B: Standard Dispute (Base Workflow)
+Simulate a standard customer dispute that requires human investigation.
+
+Request:
+
+Bash
+
+curl -X POST http://localhost:5001/event \
   -H "Content-Type: application/json" \
   -d '{
     "event_id": "evt-123",
@@ -49,50 +90,37 @@ curl -X POST http://localhost:5000/event \
     "customer_id": "cust-42",
     "metadata": {"amount": 42.00}
   }'
-```
+Response:
 
-Example response:
-```json
+JSON
+
 {
-  "normalized_event": {
-    "event_id": "evt-123",
-    "event_type": "transaction_dispute_opened",
-    "source_system": "card_processor",
-    "customer_id": "cust-42",
-    "metadata": {"amount": 42.0}
-  },
-  "workflow_category": "dispute",
   "next_action": "initiate_investigation",
-  "notes": "Dispute opened: start the investigation flow."
+  "execution_log": "✅ EXECUTION: Ticket #9902 created in Jira for Ops Team."
 }
-```
+🧪 Testing
+The project includes a comprehensive test suite covering both the base routing rules and the new conditional logic thresholds.
 
-### Routing rules
-- `transaction_dispute_opened` → workflow `dispute`, action `initiate_investigation`
-- `kyc_verification_failed` → workflow `compliance`, action `request_additional_documents`
-- `document_uploaded` → workflow `document`, action `queue_for_review`
-- anything else → workflow `unknown`, action `manual_review`
+Bash
 
-### Validation behavior
-- Missing required fields return HTTP 400 with an `errors` object describing what to fix.
-- Strings are trimmed to remove accidental whitespace.
-- `metadata` must be a JSON object (Python `dict`).
-
-## Running tests
-```bash
 pytest
-```
+Current Status: 7/7 Tests Passed (Includes test_fraud_high_risk_freezes_account and test_fraud_medium_risk_triggers_2fa).
 
-## Postman collection
-Import `Workflow_Event_Orchestrator.postman_collection.json` into Postman. Set `base_url` to your running server (e.g., `http://localhost:5000`). The collection includes:
-- `GET /health`
-- `POST /event` examples for dispute, KYC failure, and an unknown event
-- A simple test script that checks `workflow_category` exists in responses
+📬 Postman Collection
+For easier testing, a Postman collection is included.
 
-## How this mirrors FDPE work at Spring Labs
-- **JSON debugging**: You learn how a small typo or missing field triggers validation errors.
-- **Workflow mapping**: Routing rules show how event types translate to next actions.
-- **Automation mindset**: The code is structured so you could swap in a more advanced rule engine later.
-- **Postman usage**: Sharing a collection keeps teammates aligned on expected payloads.
+Import Workflow_Event_Orchestrator.postman_collection.json.
 
-Use this project to practice iterating quickly, adding new event types, and confirming behavior with both automated tests and Postman.
+Necessary: Ensure your environment base_url is set to http://localhost:5001.
+
+The collection includes pre-configured requests for:
+
+Critical Fraud Events (High Risk)
+
+Standard Disputes
+
+Health Checks
+
+👏 Attribution
+The Spring Labs Engineering Challenge originally inspired this project. I have significantly extended it to demonstrate Forward Deployed Engineering principles, explicitly focusing on the transition from insight (identifying a problem) to action (solving it programmatically).
+* **Original Repository:** (https://github.com/MWJACK96/workflow_event_orchestrator.git)
